@@ -64,6 +64,11 @@ jobs:
         with:
           python-version-file: .python-version
 
+      - name: Capture setup-python interpreter path
+        id: setup-python-interpreter
+        shell: bash
+        run: printf 'path=%s\n' "$(which python)" >> "$GITHUB_OUTPUT"
+
       - name: Set up pinned uv
         uses: astral-sh/setup-uv@v10.2.0
         with:
@@ -71,6 +76,25 @@ jobs:
           python-version: 3.14.7
           enable-cache: true
           cache-dependency-glob: uv.lock
+
+      - name: Print runtime resolution diagnostics
+        shell: bash
+        env:
+          SETUP_PYTHON_PATH: ${{ steps.setup-python-interpreter.outputs.path }}
+        run: |
+          printf 'setup-python interpreter: %s\n' "$SETUP_PYTHON_PATH"
+          printf 'current interpreter path:\n'
+          which python
+          python --version
+          uv --version
+
+          setup_python_realpath="$(readlink -f "$SETUP_PYTHON_PATH")"
+          current_python_realpath="$(readlink -f "$(which python)")"
+          if [[ "$current_python_realpath" == "$setup_python_realpath" ]]; then
+            echo "python resolves to the interpreter selected by setup-python."
+          else
+            echo "::warning::python resolves to a different interpreter than the one selected by setup-python."
+          fi
 
       - name: Verify runtime pins
         run: |
