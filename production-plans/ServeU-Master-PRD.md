@@ -111,7 +111,7 @@ The core product foundation includes:
 - English UI baseline.
 - Public pricing website.
 
-The approved later requirements in this document may be implemented in the corresponding release rather than silently being treated as MVP.
+The first-pilot release boundary is **MVP Scope v1.0**, approved on 2026-10-11 and recorded in [`docs/decisions.md`](../docs/decisions.md#mvp-scope-v10). That baseline explicitly defers inventory/recipes/vendors, custom and scheduled reports, offline business writes, refunds pending an approved policy, and packaged Android/Windows clients. The approved later requirements in this document may be implemented in the corresponding release rather than silently being treated as MVP.
 
 ## 5.2 v1.1
 
@@ -269,7 +269,7 @@ The creator of a new tenant becomes the Owner unless an explicit platform workfl
 
 ## 11.1 Authentication
 
-Firebase Authentication is responsible for user identity and authentication lifecycle.
+Firebase Authentication is responsible for user identity and authentication lifecycle. Firebase-managed email verification and password-reset emails are in scope for the first pilot; staff invitation delivery is a separate [open gate G-02](../docs/decisions.md#open-gates).
 
 ServeU remains responsible for:
 
@@ -395,6 +395,8 @@ Kitchen staff must acknowledge cancellation updates.
 
 # 15. Order Cancellation Rules
 
+**Open release gate G-01:** Confirm who may initiate/approve/reject a void or cancellation after Send to Kitchen, whether kitchen acknowledgement is required, and whether a whole-order void differs from item cancellation. See [open gate G-01](../docs/decisions.md#open-gates); resolve before implementing SU-033. Do not infer unspecified authority.
+
 Core approved rules:
 
 1. Authorized waiter/manager/cashier can initiate item cancellation.
@@ -487,6 +489,8 @@ Payment operations must be idempotent to prevent duplicate financial records.
 # 17. Refunds
 
 Refunds are separate from normal item cancellation.
+
+**Release assignment:** Refunds are a planned product capability but are deferred from the first pilot by [MVP Scope v1.0](../docs/decisions.md#mvp-scope-v10), pending approval of a refund policy.
 
 Paid/closed orders cannot be normally edited.
 

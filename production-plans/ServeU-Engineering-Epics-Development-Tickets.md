@@ -2,7 +2,7 @@
 
 **Document version:** 1.0  
 **Status:** Draft for engineering planning  
-**Basis:** ServeU Master PRD, Implementation Roadmap, MVP Scope & Open Decisions Checklist  
+**Basis:** ServeU Master PRD, Implementation Roadmap, and approved [MVP Scope v1.0](../docs/decisions.md#mvp-scope-v10)<br>
 **Purpose:** Turn the product plan into implementation-ready epics and tickets without silently treating unresolved scope as approved.
 
 ---
@@ -18,7 +18,7 @@
 
 ### Scope guardrail
 
-The initial MVP baseline is authentication and roles, tenant/branch onboarding, menu, POS/billing, orders, kitchen workflow, cash/manual payments, receipts, basic dashboard/sales reports, staff/settings, English UI, and public pricing website. Inventory/recipes/vendors, advanced custom reporting, offline order queuing, device packaging, and scheduled automation must follow the status in the open-decisions checklist. If a feature's MVP status is unresolved, its ticket is **P2 / decision-gated**, not assumed approved.
+The approved first-pilot boundary is [MVP Scope v1.0](../docs/decisions.md#mvp-scope-v10): authentication/onboarding, tenant/branch/staff and permissions, menu/tables, POS/orders/kitchen, Bill Review, cash and manual payment recording, split/partial payments, receipts, basic dashboard/sales reports, settings, English responsive browser/PWA, and the public pricing website. Inventory/recipes/vendors, custom/scheduled reports, offline business writes, Android/Windows packages, refunds, and online gateways are explicitly deferred. Treat any scope change as a decision requiring approval and a versioned update; unresolved later-release work remains decision-gated.
 
 ---
 
@@ -50,27 +50,37 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 **Description:** Record the first-release feature list and explicitly defer unapproved items.
 
 **Acceptance criteria**
-- [ ] Each major feature is marked MVP, conditional, or later in the scope checklist.
-- [ ] Inventory/recipe/vendor, offline order queue, custom reports/scheduling, and Android/Windows launch have explicit decisions.
-- [ ] Tax, service charge, discount, currency, receipt hardware, stock-consumption trigger, and recovery objectives have documented defaults or decisions.
-- [ ] The approved scope version is referenced by the release plan.
+- [x] Each major feature is marked MVP, conditional, or later in `docs/decisions.md`.
+- [x] Inventory/recipe/vendor, offline order queue, custom reports/scheduling, and Android/Windows launch have explicit release decisions.
+- [x] Tax, service charge, discount, currency, receipt hardware, stock-consumption trigger, and recovery objectives have documented defaults or decision gates.
+- [x] MVP Scope v1.0 is referenced by the release plan.
 
 ### SU-002 — Establish repository and code-quality conventions
 **Priority:** P0 · **Type:** Engineering
 
 **Acceptance criteria**
-- [ ] Backend and frontend project structure is documented.
-- [ ] Formatting, linting, type-checking, test commands, environment variable conventions, and migration workflow are documented.
-- [ ] Secrets are excluded from source control.
-- [ ] A contributor can run the app and tests locally from the README.
+- [x] Backend and frontend project structure is documented.
+- [x] Node and Python runtimes, npm and uv, and project dependencies are pinned; `package-lock.json` and `uv.lock` are committed.
+- [x] Frontend npm scripts configure ESLint, Prettier, TypeScript `tsc`, and Vitest; the backend uv project pins Ruff, mypy, and pytest and documents their commands.
+- [x] README documents local prerequisites, install/run/test commands, environment variable conventions, and the migration workflow.
+- [x] Each app has at least one smoke test; CI runs lint, format, type checks, tests, dependency audits, and full-working-tree plus full-history Gitleaks scans without database or emulator services.
+- [x] Secrets and credential files are excluded from source control; pre-commit hooks and GitHub Actions are configured.
+- [x] Renovate enforces a 14-day minimum release age for routine updates.
+- [x] Conventional Commit and branch conventions are documented in `AGENTS.md` and the README.
+- [ ] GitHub Actions completes green on the pinned Node.js `24.21.0` and Python `3.14.7` runtimes before SU-002 is marked Done.
+
+**Verification note:** The implementation and local quality/security checks are verified, but SU-002 remains in progress until a hosted GitHub Actions run is green on the pinned runtimes. Migration, tenant-isolation, and RBAC gates are **not applicable until M1** for this ticket (N/A; not run/not complete, unchecked) and do not block SU-002; see the task log.
 
 ### SU-003 — Create CI and environment configuration
 **Priority:** P0 · **Type:** DevOps
 
+**Ownership boundary:** SU-003 owns service-backed local and deployment configuration. SU-002's CI remains a service-free quality/security baseline.
+
 **Acceptance criteria**
-- [ ] Pull requests run lint, type checks, unit tests, and backend tests.
-- [ ] Staging and production configuration are separated.
-- [ ] Database migration validation runs in CI or a controlled release check.
+- [ ] Add a local Docker Compose environment that provides PostgreSQL and the Firebase Auth Emulator; document startup, readiness, and shutdown.
+- [ ] Document and validate environment configuration, including safe variable names/placeholders, separate development/staging/production settings, and secret-manager usage. Never commit credentials.
+- [ ] Validate database migrations both up and down against PostgreSQL in CI or a controlled release check; this service-backed validation is owned by SU-003, not the SU-002 quality workflow.
+- [ ] Pull requests retain the SU-002 lint, format, type-check, test, dependency-audit, and secret-scan baseline; add service-backed checks only with the SU-003 environment.
 - [ ] Deployment requires explicit environment configuration; secrets are stored outside the repository.
 
 ---
@@ -82,6 +92,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 
 **Acceptance criteria**
 - [ ] Sign-in and sign-out use Firebase Authentication.
+- [ ] Firebase-managed email verification and password-reset workflows are available for pilot accounts.
 - [ ] Backend validates identity tokens and rejects invalid/expired tokens.
 - [ ] Firebase identity is mapped to a ServeU user record without treating Firebase claims as the source of business permissions.
 - [ ] Authentication errors do not expose secrets or sensitive internals.
@@ -143,6 +154,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 - [ ] Staff can be deactivated without deleting historical attribution.
 - [ ] Invite/reinvite and invalid/expired invite states are handled.
 - [ ] A staff user cannot grant permissions they do not have authority to grant.
+- [ ] Invitation delivery channel and lifecycle follow open Gate G-02 in [docs/decisions.md](../docs/decisions.md#open-gates); do not assume Firebase Auth email is the invitation channel.
 
 ### SU-022 — Implement tables and service areas
 **Priority:** P1 · **Type:** Full stack
@@ -197,6 +209,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 
 **Acceptance criteria**
 - [ ] Cancellation requires a configured reason; an optional note can be recorded.
+- [ ] Void/cancel authority after Send to Kitchen follows Gate G-01; resolve that gate before implementing the workflow or freezing API permissions.
 - [ ] Cancellation before prep updates the bill according to the approved rules.
 - [ ] During-prep cancellation does not reduce the bill until kitchen acknowledgement where required.
 - [ ] After-prep financial adjustments require the configured manager/owner-authorized approval path.
@@ -359,7 +372,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 **Acceptance criteria**
 - [ ] Backup schedule and retention are documented for the selected database provider.
 - [ ] Restore is tested in a non-production environment.
-- [ ] Product owner approves recovery point objective (RPO) and recovery time objective (RTO).
+- [ ] Verify the provisionally approved RPO ≤ 24 h / RTO < 4 h targets against provider capability, pass a successful restore test, and revise/escalate before go-live if the provider cannot meet them.
 - [ ] Restore verification includes tenant, order, payment, and audit consistency checks.
 
 ### SU-074 — Add observability and operational alerts
@@ -375,7 +388,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 
 ## 11. E08 — Offline Cash Queue & Sync (Decision-Gated)
 
-**Status:** P2 until the product owner explicitly approves offline order creation for the MVP.
+**Status:** Deferred from MVP Scope v1.0. The pilot allows read-only cached menu viewing but no offline business writes; order/payment actions are blocked offline. A future cash queue may be considered after the core loop is stable and requires separate approval.
 
 ### SU-080 — Define offline operation and dependency model
 **Priority:** P2 · **Type:** Architecture
@@ -621,17 +634,20 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 
 ---
 
-## 17. Product-owner decisions required before ticket commitment
+## 17. Open product-owner and operational gates
 
-- [ ] Confirm which features are in the pilot MVP versus later release.
-- [ ] Confirm tax, service charge, discount, currency, timezone, and rounding rules.
-- [ ] Confirm split bills, partial payments, refunds, and manual card-payment recording scope.
-- [ ] Confirm whether inventory/recipe/vendor functionality is required for the first pilot.
-- [ ] If inventory is included, choose the order event that triggers stock consumption and define negative-stock behavior.
-- [ ] Confirm custom report builder, exports, and scheduled reports in MVP.
-- [ ] Confirm offline cash-order queue in MVP and explicitly defer LAN counter-to-kitchen sync until architecture is approved.
-- [ ] Confirm launch platforms and supported printer/scanner hardware.
-- [ ] Approve backup retention, RPO/RTO, and operational alert ownership.
+The first-pilot boundary is approved in [MVP Scope v1.0](../docs/decisions.md#mvp-scope-v10). Every remaining gate has an accountable role-owner and trigger in [docs/decisions.md](../docs/decisions.md#open-gates). Resolve gates before their dependent ticket or release trigger:
+
+- G-01 — post-Send-to-Kitchen void/cancel authority: before SU-033.
+- G-02 — staff invitation delivery: before SU-021.
+- G-03 — provider capability, backup retention and alert ownership: validate provisional RPO ≤ 24 h / RTO < 4 h targets and restore test before go-live.
+- G-04/G-05 — tax/service rules and discount caps: before implementing/enabling those rules.
+- G-06 — stock-consumption/negative-stock policy: before E09/SU-092.
+- G-07 — hardware selection: before hardware-specific commitment/SU-111.
+- G-08 — future offline writes/LAN: before E08/SU-080.
+- G-09 — refund policy: before SU-055.
+- G-10 — browser/OS and performance targets: before M7 QA planning.
+- G-11 — production alert response owner: before pilot monitoring is enabled.
 
 ---
 
@@ -652,7 +668,7 @@ The initial MVP baseline is authentication and roles, tenant/branch onboarding, 
 
 - `ServeU-Master-PRD.md`
 - `ServeU-Implementation-Roadmap-Development-Task-Breakdown.md`
-- `ServeU-MVP-Scope-Open-Decisions-Checklist.md`
+- `docs/decisions.md` — approved MVP scope and remaining release gates
 - `ServeU-Database-Schema-Specification.md`
 - `ServeU-API-Contract-Specification.md`
 - `ServeU-Permission-Matrix-Specification.md`

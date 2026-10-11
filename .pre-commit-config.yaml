@@ -1,0 +1,77 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=1024]
+      - id: check-merge-conflict
+      - id: check-toml
+      - id: check-yaml
+      - id: end-of-file-fixer
+      - id: trailing-whitespace
+        args: [--markdown-linebreak-ext=md]
+
+  - repo: local
+    hooks:
+      - id: gitleaks-staged
+        name: Gitleaks staged-content scan
+        entry: gitleaks git --staged --redact --config gitleaks.toml
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: frontend-lint
+        name: Frontend ESLint
+        entry: npm --prefix frontend run lint
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: frontend-format
+        name: Frontend Prettier check
+        entry: npm --prefix frontend run format:check
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: frontend-typecheck
+        name: Frontend TypeScript check
+        entry: npm --prefix frontend run typecheck
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: frontend-test
+        name: Frontend Vitest suite
+        entry: npm --prefix frontend test
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: backend-lint
+        name: Backend Ruff check
+        entry: uv run --frozen ruff check backend
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: backend-format
+        name: Backend Ruff format check
+        entry: uv run --frozen ruff format --check backend
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: backend-typecheck
+        name: Backend mypy check
+        entry: uv run --frozen mypy backend
+        language: system
+        pass_filenames: false
+        always_run: true
+
+      - id: backend-test
+        name: Backend pytest suite
+        entry: uv run --frozen pytest
+        language: system
+        pass_filenames: false
+        always_run: true

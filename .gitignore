@@ -5,8 +5,21 @@
 *.pem
 *.key
 *serviceAccountKey*.json
+*service-account*.json
+*serviceAccount*.json
 *firebase-adminsdk*.json
 *credentials*.json
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_ed25519
+.aws/
+.azure/
+.gcloud/
+.config/gcloud/
 secrets/
 
 # Python / FastAPI

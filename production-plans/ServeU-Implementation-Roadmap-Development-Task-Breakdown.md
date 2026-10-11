@@ -24,28 +24,29 @@ Turn the consolidated ServeU PRD and detailed specifications into an implementat
 
 ## 3. Release boundaries
 
-### Core MVP baseline
+### Approved first-pilot MVP baseline — MVP Scope v1.0
 
-- Authentication and tenant onboarding; first branch setup; branch-scoped staff and access.
-- Menu/category management, tables, POS/order creation, explicit Send to Kitchen, kitchen display, bill review, cash/card/manual payment recording, split bill/partial payments, receipts, and basic dashboard/sales reports.
-- Staff and permission controls, settings, currency configuration, English UI, and public pricing website.
-- Baseline security, audit trail for sensitive actions, deployment pipeline, backups, monitoring, and regression testing.
+Approved on 2026-10-11. The release boundary is recorded in [`docs/decisions.md`](../docs/decisions.md#mvp-scope-v10).
 
-### Scope requiring explicit confirmation before scheduling
+- Authentication, tenant onboarding, branch setup, staff, roles/permissions, and operational settings.
+- Menu/category management, tables/service areas, branch-aware operations, POS/orders, explicit Send to Kitchen, and kitchen display/status workflow.
+- Mandatory Bill Review; cash and manually recorded card/other payments; split and partial payments; receipts.
+- Basic dashboard and predefined sales reports.
+- Responsive English browser application/PWA and public pricing website.
+- Baseline server-side tenant/branch authorization, auditability, idempotency, testing, backup/restore planning, monitoring, and release hardening.
 
-The consolidated PRD identifies unresolved release decisions. Before committing dates, confirm whether the following are MVP or a later release:
+Pilot defaults: PKR is the configurable per-tenant default; automatic tax/service charges are off; discounts are permission-controlled. Digital receipts/browser printing may be supported, with no specific printer model promised. Offline behavior is read-only menu cache plus a clear offline banner; order and payment actions are blocked. Retryable mutations use client-generated UUID/idempotency identifiers from the beginning while server records remain authoritative.
 
-- Full inventory, barcode scanning, recipes, automatic ingredient deduction, batch/expiry handling, and stock variance analysis.
-- Custom report builder, scheduled exports/reports, and vendor reminders.
-- Offline order creation and local counter-to-kitchen coordination when internet is down but LAN is available.
-- Windows EXE and Android APK packaging timing.
+### Explicitly deferred from the first pilot
 
-### Later-phase items (not to be assumed in MVP)
+- Inventory, barcode scanning, recipes, automatic ingredient deduction, batch/expiry tracking, and vendor workflows.
+- Custom report builder, exports, scheduled reports, and vendor reminders.
+- Offline business writes, cash-order queue, and local counter-to-kitchen/LAN coordination.
+- Android APK and Windows EXE packaging.
+- Refund workflow pending approval of a separate policy.
+- Online payment gateways and AI reporting.
 
-- AI Report Assistant.
-- Online payment gateway integration.
-- SMS/WhatsApp/email delivery where only in-app reminders are specified initially.
-- Platform administration console and advanced automation/escalation workflows, unless separately approved.
+Provisional RPO ≤ 24 h and RTO < 4 h are approved as pilot targets; verify provider capability and pass a restore test before go-live. Backup retention remains open. Future scope changes require approval and a versioned update to the decisions record.
 
 ## 4. Milestone overview
 
@@ -57,7 +58,7 @@ The consolidated PRD identifies unresolved release decisions. Before committing 
 | M3 | POS, orders and kitchen | Happy path and cancellation/update paths pass end-to-end tests |
 | M4 | Billing, payments and receipts | Payment state, split/partial payment and receipt flows pass with idempotency |
 | M5 | Reports and operational modules | Only approved inventory/reporting/vendor scope is implemented and tested |
-| M6 | Offline/realtime reliability | Reconnect, deduplication, conflict handling and LAN boundary tests pass |
+| M6 | Optional offline/sync expansion (post-MVP) | Separately approved; not a gate for the first pilot |
 | M7 | Hardening and launch readiness | Security, accessibility, performance, backup restore and deployment gates pass |
 | M8 | Controlled rollout | Pilot feedback resolved; release decision and rollback plan approved |
 
@@ -70,7 +71,7 @@ Milestones are dependency-based, not calendar estimates. Estimate effort after s
 **Tasks**
 - [ ] Create a clean rebuild repository or branch; preserve the current prototype unchanged.
 - [ ] Record the Master PRD version and link all specification documents in the repository.
-- [ ] Create a decision log for unresolved MVP/later choices, including owner and due date.
+- [x] Create and maintain [`docs/decisions.md`](../docs/decisions.md) for scope and operational gates, each with an accountable owner and trigger.
 - [ ] Define development, test, staging, and production environment variables and secrets policy.
 - [ ] Establish pull-request review, issue labels, coding standards, linting, formatting, and dependency update policy.
 - [ ] Add CI skeleton for frontend and backend checks.
@@ -137,7 +138,7 @@ Milestones are dependency-based, not calendar estimates. Estimate effort after s
 - Post-prep price/quantity adjustment cannot bypass required authorization.
 - A missed WebSocket event is recovered by refetching authoritative REST state.
 
-### M4 — Bill review, payments, refunds and receipts
+### M4 — Bill review, payments and receipts
 
 **Tasks**
 - [ ] Implement mandatory Bill Review with item quantities, prices, subtotal, taxes/service, discounts, and final payable.
@@ -145,7 +146,7 @@ Milestones are dependency-based, not calendar estimates. Estimate effort after s
 - [ ] Implement split by items or amounts and partial payments with remaining balance.
 - [ ] Implement cash received/change calculation and cashier confirmation.
 - [ ] Implement payment attempt state, failure/retry/change-method handling, and payment idempotency.
-- [ ] Implement full/partial refunds as separate audited actions with reason and original payment reference.
+- Refunds are deferred from MVP Scope v1.0; schedule this flow only after the policy and approval path are approved (see SU-055).
 - [ ] Generate receipt data after confirmed payment; support optional print/digital/share/no-receipt choice as specified.
 - [ ] Ensure paid/closed orders are corrected through permitted adjustment/refund paths rather than ordinary editing.
 
@@ -186,7 +187,9 @@ Implement only after the release decision log identifies which of these are MVP.
 - Recipe consumption cannot be applied twice for the same qualifying order event.
 - Gross profit is labelled as gross profit, not full accounting/net profit.
 
-### M6 — Offline queue, sync and realtime resilience
+### M6 — Optional offline queue, sync and realtime resilience (post-MVP)
+
+**Scope boundary:** Offline business writes and local LAN counter-to-kitchen operation are out of MVP Scope v1.0 and are not prerequisites for the first pilot. The pilot supports read-only cached menu access with a clear offline indicator and blocks order/payment actions. Revisit a cash queue after the core loop is stable and only following separate scope and architecture approval. Client-generated UUIDs/idempotency keys are day-one design requirements, not permission to write offline.
 
 **Tasks**
 - [ ] Implement local operational persistence using IndexedDB/Dexie, not localStorage for the durable queue.
@@ -213,10 +216,10 @@ Implement only after the release decision log identifies which of these are MVP.
 - [ ] Run dependency and secret scanning; validate secure headers, cookie/token handling, rate limits and input validation as appropriate.
 - [ ] Test accessibility against WCAG 2.2 AA targets for critical workflows.
 - [ ] Establish performance budgets for initial load, POS interactions, kitchen refresh, and report generation; measure on agreed target hardware.
-- [ ] Configure backups and conduct restore drills; document RPO/RTO only after they are agreed and tested.
+- [ ] Configure backups and conduct a restore test; verify the provisional RPO ≤ 24 h / RTO < 4 h targets against provider capability and approve backup retention before go-live.
 - [ ] Configure staging-to-production deployment gates, migration review, rollback/forward-fix procedure, and incident runbook.
 - [ ] Verify monitoring and alerts for API errors, database health, job failures, sync failures, and unusual payment errors.
-- [ ] Test printer/camera/barcode adapters on supported target platforms and document device-specific limitations.
+- [ ] If hardware integration is approved for a later release, test printer/camera/barcode adapters on selected target platforms and document limitations.
 
 **Acceptance criteria**
 - Critical E2E suite passes in CI and staging.
@@ -230,7 +233,7 @@ Implement only after the release decision log identifies which of these are MVP.
 **Tasks**
 - [ ] Select pilot tenant(s), branches, devices and representative operating conditions.
 - [ ] Train owner/manager/cashier/kitchen users and provide support/issue reporting path.
-- [ ] Verify opening setup, menu/tables/staff, receipts/printer and end-of-day reconciliation.
+- [ ] Verify opening setup, menu/tables/staff, digital/browser receipts, and end-of-day reconciliation; test a named printer only if hardware is approved.
 - [ ] Run real-world network-loss and reconnect drills where offline capability is approved.
 - [ ] Review audit records, support tickets, error metrics and user feedback daily during pilot.
 - [ ] Define release/no-release decision, rollback trigger, data migration freeze and communications plan.
@@ -271,24 +274,26 @@ Use a parent epic for each milestone and split work into vertical slices. Each t
 
 Avoid tickets such as “build backend” or “finish POS” without a testable outcome.
 
-## 8. Product decisions that block a committed schedule
+## 8. Open decision gates
 
-Record explicit decisions for:
+The first-pilot scope choices are approved in [MVP Scope v1.0](../docs/decisions.md#mvp-scope-v10). The complete open-gate register, including accountable owners and triggers, is maintained in [docs/decisions.md](../docs/decisions.md#open-gates). Resolve each gate before its trigger; deferred features remain outside the first-pilot critical path.
 
-1. Inventory/recipe/vendor features: MVP or later release?
-2. Custom reports and scheduled exports: MVP or later release?
-3. Offline scope for first release: local queue only, or also LAN counter-to-kitchen coordination?
-4. Android APK and Windows EXE packaging: initial launch or later milestone?
-5. Tax/service charge, discount limits, currency and receipt requirements per target market.
-6. Target devices/printers/scanners and minimum supported browser/OS versions.
-7. Performance targets, backup retention, and agreed recovery objectives.
-8. Owner/senior-user authority and manager approval limits for post-prep changes/refunds.
-
-Until answered, the roadmap preserves the current PRD baseline and marks affected tasks conditional.
+- G-01 — post-Send-to-Kitchen void/cancel authority: before SU-033.
+- G-02 — staff invitation delivery: before SU-021.
+- G-03 — provider capability, backup retention and alert ownership: validate provisional RPO ≤ 24 h / RTO < 4 h targets and restore test before go-live.
+- G-04/G-05 — tax/service calculations and discount limits: before enabling them.
+- G-06 — inventory consumption/negative-stock policy: before E09/SU-092.
+- G-07 — hardware: before hardware-specific commitment/SU-111.
+- G-08 — future offline writes/LAN: before E08/SU-080.
+- G-09 — refund policy: before SU-055.
+- G-10 — supported browser/OS and performance targets: before M7 QA planning.
+- G-11 — operational alert response owner: before pilot monitoring is enabled.
 
 ## 9. Suggested implementation order at a glance
 
-`Scope & repo → Backend/data/security → Tenant setup → Menu/tables/staff → POS/order/kitchen → Bill/payment/receipt → Approved reports/operations → Offline/realtime hardening → Release readiness → Pilot`
+`Scope & repo → Backend/data/security → Tenant setup → Menu/tables/staff → POS/order/kitchen → Bill/payment/receipt → Approved MVP reports/operations → Release readiness → Pilot`
+
+Optional post-MVP scope (only after separate approval): offline queue/sync and local LAN coordination.
 
 Some frontend work can proceed in parallel against agreed API contracts, but no UI-only permission enforcement should be considered security complete. Inventory deductions must integrate with order lifecycle through a single idempotent domain event/transaction strategy, not through unrelated client-side updates.
 

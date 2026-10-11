@@ -1,0 +1,25 @@
+title = "ServeU secret scanning configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Credential files and opaque planning attachments are excluded by repository policy; .git is skipped here because Git history is scanned separately."
+paths = [
+  '''(^|/)\.git(/|$)''',
+  '''(?i)(^|/)\.env($|\.)''',
+  '''(?i)(^|/).*service.?account.*\.json$''',
+  '''(?i)(^|/)firebase-adminsdk.*\.json$''',
+  '''(?i)(^|/).*credentials.*\.json$''',
+  '''(?i)(^|/).*\.(pem|key|p8|p12|pfx|jks|keystore)$''',
+  '''(?i)(^|/).*jwt.*(private|secret).*''',
+  '''(?i)(^|/).*private.?key.*''',
+  '''(?i)(^|/).*cloud.*credential.*''',
+  '''(?i)(^|/)secrets(/|$)''',
+  '''(?i)(^|/)\.aws(/|$)''',
+  '''(?i)(^|/)\.azure(/|$)''',
+  '''(?i)(^|/)\.gcloud(/|$)''',
+  '''(?i)(^|/)\.config/gcloud(/|$)''',
+  '''(^|/)\.getktp$''',
+  '''^production plans-folder$''',
+]
