@@ -77,19 +77,22 @@ jobs:
           enable-cache: true
           cache-dependency-glob: uv.lock
 
-      - name: Print runtime resolution diagnostics
+      - name: Compare setup-python interpreter path
         shell: bash
         env:
           SETUP_PYTHON_PATH: ${{ steps.setup-python-interpreter.outputs.path }}
         run: |
-          printf 'setup-python interpreter: %s\n' "$SETUP_PYTHON_PATH"
-          printf 'current interpreter path:\n'
-          which python
-          python --version
-          uv --version
+          current_python_path="$(which python)"
+          printf 'setup-python interpreter path: %s\n' "$SETUP_PYTHON_PATH"
+          printf 'current python interpreter path: %s\n' "$current_python_path"
+
+          {
+            printf -- '- `setup-python` interpreter path: `%s`\n' "$SETUP_PYTHON_PATH"
+            printf -- '- current `python` interpreter path: `%s`\n' "$current_python_path"
+          } >> "$GITHUB_STEP_SUMMARY"
 
           setup_python_realpath="$(readlink -f "$SETUP_PYTHON_PATH")"
-          current_python_realpath="$(readlink -f "$(which python)")"
+          current_python_realpath="$(readlink -f "$current_python_path")"
           if [[ "$current_python_realpath" == "$setup_python_realpath" ]]; then
             echo "python resolves to the interpreter selected by setup-python."
           else
@@ -97,9 +100,34 @@ jobs:
           fi
 
       - name: Verify runtime pins
+        shell: bash
         run: |
-          test "$(python --version)" = "Python 3.14.7"
-          test "$(uv --version)" = "uv 0.12.19"
+          set -euo pipefail
+
+          python_version="$(python --version 2>&1)"
+          uv_version_output="$(uv --version 2>&1)"
+          uv_version_token="$(awk 'NR == 1 { print $2; exit }' <<< "$uv_version_output")"
+
+          echo "$python_version"
+          echo "$uv_version_output"
+
+          {
+            echo '### Backend runtime pin verification'
+            printf -- '- Python version: `%s`\n' "$python_version"
+            printf -- '- uv version output: `%s`\n' "$uv_version_output"
+            printf -- '- uv version token 2: `%s`\n' "$uv_version_token"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          runtime_pin_failed=0
+          test "$python_version" = "Python 3.14.7" || {
+            echo "::error::Expected Python 3.14.7, found: $python_version"
+            runtime_pin_failed=1
+          }
+          test "$uv_version_token" = "0.12.19" || {
+            echo "::error::Expected uv version token 2 to be 0.12.19, found: $uv_version_token"
+            runtime_pin_failed=1
+          }
+          exit "$runtime_pin_failed"
 
       - name: Install locked backend dependencies
         run: uv sync --frozen
