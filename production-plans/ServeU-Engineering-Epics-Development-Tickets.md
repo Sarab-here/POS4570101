@@ -67,9 +67,9 @@ The approved first-pilot boundary is [MVP Scope v1.0](../docs/decisions.md#mvp-s
 - [x] Secrets and credential files are excluded from source control; pre-commit hooks and GitHub Actions are configured.
 - [x] Renovate enforces a 14-day minimum release age for routine updates.
 - [x] Conventional Commit and branch conventions are documented in `AGENTS.md` and the README.
-- [ ] GitHub Actions completes green on the pinned Node.js `24.21.0` and Python `3.14.7` runtimes before SU-002 is marked Done.
+- [x] GitHub Actions completed green on the pinned Node.js `24.21.0` and Python `3.14.7` runtimes in run `38149625549` (commit `6f665213d3baae2eb39dc0195e7eb20d1ce6da88`).
 
-**Verification note:** The implementation and local quality/security checks are verified, but SU-002 remains in progress until a hosted GitHub Actions run is green on the pinned runtimes. Migration, tenant-isolation, and RBAC gates are **not applicable until M1** for this ticket (N/A; not run/not complete, unchecked) and do not block SU-002; see the task log.
+**Verification note:** The implementation, local quality/security checks, and hosted GitHub Actions run `38149625549` on the pinned runtimes are verified; SU-002 is Done. Migration, tenant-isolation, and RBAC gates are **not applicable until M1** for this ticket (N/A; not run/not complete, unchecked) and do not block SU-002; see the task log.
 
 ### SU-003 — Create CI and environment configuration
 **Priority:** P0 · **Type:** DevOps
